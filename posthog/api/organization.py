@@ -97,13 +97,19 @@ class OrganizationSerializer(
             "plugins_access_level",
             "teams",
             "projects",
+            "available_features",
             "available_product_features",
             "is_member_join_email_enabled",
+            "setup_section_2_completed",
+            "setup_section_3_completed",
+            "personalization",
+            "domain_whitelist",
+            "is_hipaa",
+            "enforce_2fa",
             "metadata",
             "customer_id",
-            "enforce_2fa",
             "member_count",
-            "is_ai_data_processing_approved",
+            "session_cookie_age",
         ]
         read_only_fields = [
             "id",
@@ -258,6 +264,40 @@ class OrganizationViewSet(TeamAndOrgViewSetMixin, viewsets.ModelViewSet):
                 "organization 2fa enforcement toggled",
                 properties={
                     "enabled": enforce_2fa_value,
+                    "organization_id": str(organization.id),
+                    "organization_name": organization.name,
+                    "user_role": user.organization_memberships.get(organization=organization).level,
+                },
+                groups=groups(organization),
+            )
+
+        # Handle session_cookie_age updates
+        if "session_cookie_age" in request.data:
+            session_cookie_age = request.data["session_cookie_age"]
+            organization = self.get_object()
+            user = cast(User, request.user)
+
+            # Validate session_cookie_age
+            if session_cookie_age is not None:
+                try:
+                    session_cookie_age_int = int(session_cookie_age)
+                    if session_cookie_age_int <= 0:
+                        return Response(
+                            {"detail": "Session cookie age must be a positive integer."},
+                            status=400,
+                        )
+                except (ValueError, TypeError):
+                    return Response(
+                        {"detail": "Session cookie age must be a valid integer or null."},
+                        status=400,
+                    )
+
+            # Add capture event for session cookie age change
+            posthoganalytics.capture(
+                str(user.distinct_id),
+                "organization session cookie age updated",
+                properties={
+                    "session_cookie_age": session_cookie_age,
                     "organization_id": str(organization.id),
                     "organization_name": organization.name,
                     "user_role": user.organization_memberships.get(organization=organization).level,

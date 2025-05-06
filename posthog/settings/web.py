@@ -11,6 +11,20 @@ from posthog.utils_cors import CORS_ALLOWED_TRACING_HEADERS
 
 logger = structlog.get_logger(__name__)
 
+
+# Utility function to get organization-specific session cookie age
+def get_organization_session_cookie_age(organization=None):
+    """
+    Get the session cookie age for a specific organization.
+    Falls back to the global SESSION_COOKIE_AGE if organization is None or has no custom setting.
+    """
+    if organization and organization.session_cookie_age is not None:
+        return organization.session_cookie_age
+
+    # Fall back to global setting
+    return get_from_env("SESSION_COOKIE_AGE", 60 * 60 * 24 * 14, type_cast=int)
+
+
 ####
 # django-axes
 
