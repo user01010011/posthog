@@ -132,7 +132,7 @@ class Organization(UUIDModel):
     session_cookie_age = models.IntegerField(
         null=True,
         blank=True,
-        help_text="Custom session cookie age in seconds. If not set, the global setting will be used.",
+        help_text="Custom session cookie age in seconds. If not set, the global setting SESSION_COOKIE_AGE will be used.",
     )
     for_internal_metrics = models.BooleanField(default=False)
     is_member_join_email_enabled = models.BooleanField(default=True)
