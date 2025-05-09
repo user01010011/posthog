@@ -11,6 +11,9 @@ from posthog.utils_cors import CORS_ALLOWED_TRACING_HEADERS
 
 logger = structlog.get_logger(__name__)
 
+DEFAULT_SESSION_COOKIE_AGE = 60 * 60 * 24 * 14
+DEFAULT_SESSION_SENSITIVE_ACTIONS_AGE = 60 * 60 * 6
+
 
 # Utility function to get organization-specific session cookie age
 def get_organization_session_cookie_age(organization=None):
@@ -22,7 +25,7 @@ def get_organization_session_cookie_age(organization=None):
         return organization.session_cookie_age
 
     # Fall back to global setting
-    return get_from_env("SESSION_COOKIE_AGE", 60 * 60 * 24 * 14, type_cast=int)
+    return get_from_env("SESSION_COOKIE_AGE", DEFAULT_SESSION_COOKIE_AGE, type_cast=int)
 
 
 ####
@@ -211,10 +214,12 @@ SOCIAL_AUTH_GITLAB_SECRET: str | None = os.getenv("SOCIAL_AUTH_GITLAB_SECRET")
 SOCIAL_AUTH_GITLAB_API_URL: str = os.getenv("SOCIAL_AUTH_GITLAB_API_URL", "https://gitlab.com")
 
 # Cookie age in seconds (default 2 weeks) - these are the standard defaults for Django but having it here to be explicit
-SESSION_COOKIE_AGE = get_from_env("SESSION_COOKIE_AGE", 60 * 60 * 24 * 14, type_cast=int)
+SESSION_COOKIE_AGE = get_from_env("SESSION_COOKIE_AGE", DEFAULT_SESSION_COOKIE_AGE, type_cast=int)
 
 # For sensitive actions we have an additional permission (default 1 hour)
-SESSION_SENSITIVE_ACTIONS_AGE = get_from_env("SESSION_SENSITIVE_ACTIONS_AGE", 60 * 60 * 6, type_cast=int)
+SESSION_SENSITIVE_ACTIONS_AGE = get_from_env(
+    "SESSION_SENSITIVE_ACTIONS_AGE", DEFAULT_SESSION_SENSITIVE_ACTIONS_AGE, type_cast=int
+)
 
 CSRF_COOKIE_NAME = "posthog_csrftoken"
 CSRF_COOKIE_AGE = get_from_env("CSRF_COOKIE_AGE", SESSION_COOKIE_AGE, type_cast=int)
