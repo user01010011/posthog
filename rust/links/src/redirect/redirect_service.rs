@@ -381,11 +381,7 @@ mod tests {
         let key =
             RedisRedirectKeyPrefix::External.get_redis_key_for_url(PHOG_GG_DOMAIN, &short_string);
 
-        let item = Item {
-            url: "https://example.com".to_string(),
-            team_id: Some(257),
-        };
-        redis_client.get_ret(&key, Ok(serde_json::to_string(&item).unwrap()));
+        redis_client.set_nx_ex_ret(&key, Ok(false));
 
         let service =
             ExternalRedirectService::new(Arc::new(redis_client), PHOG_GG_DOMAIN.to_string());
