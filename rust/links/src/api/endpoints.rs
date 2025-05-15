@@ -17,6 +17,14 @@ use crate::{
     },
 };
 
+fn get_redirect_url(url: String) -> String {
+    if url.starts_with("http://") || url.starts_with("https://") {
+        url
+    } else {
+        format!("https://{url}")
+    }
+}
+
 #[axum::debug_handler]
 pub async fn internal_redirect_url(
     state: State<AppState>,
@@ -42,8 +50,7 @@ pub async fn internal_redirect_url(
     );
     match redirect_service.redirect_url(&short_code, &hostname).await {
         Ok(item) => {
-            let url = item.url;
-            let location = format!("https://{url}");
+            let location = get_redirect_url(item.url);
 
             if let Some(team_id) = item.team_id {
                 let event = create_clickhouse_event(
@@ -90,8 +97,7 @@ pub async fn external_redirect_url(
     );
     match redirect_service.redirect_url(&short_code, host).await {
         Ok(item) => {
-            let url = item.url;
-            let redirect_url = format!("https://{url}");
+            let redirect_url = get_redirect_url(item.url);
             (
                 StatusCode::FOUND,
                 [(axum::http::header::LOCATION, redirect_url)],
@@ -136,16 +142,20 @@ pub async fn external_store_url(
         state.external_redis_client.clone(),
         state.default_domain_for_public_store.clone(),
     );
-    let short_string = generate_base62_string();
 
+    let short_string = generate_base62_string();
     match redirect_service
         .store_url(&payload.redirect_url, &short_string)
         .await
     {
-        Ok(redirect_url) => {
+        Ok(_) => {
+            let short_url = format!(
+                "https://{}/ph/{}",
+                state.default_domain_for_public_store, short_string
+            );
             let response = ExternalStoreUrlResponse {
                 long_url: payload.redirect_url,
-                short_url: redirect_url,
+                short_url,
                 created_at: chrono::Utc::now().timestamp(),
             };
             (StatusCode::OK, Json(response)).into_response()
