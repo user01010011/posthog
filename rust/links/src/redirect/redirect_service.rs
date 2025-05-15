@@ -81,7 +81,7 @@ impl InternalRedirectService {
                 .await?;
 
         // If serialization or redis set fails, we shouldn't fail the retrieval and just log
-        if let Some(serialized) = serde_json::to_string(&redirect_item).ok() {
+        if let Ok(serialized) = serde_json::to_string(&redirect_item) {
             if let Err(error) = self
                 .redis_client
                 .set_nx_ex(
