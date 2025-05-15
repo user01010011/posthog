@@ -12,7 +12,7 @@ async fn should_return_404_for_nonexistent_link() -> Result<()> {
     let client = reqwest::Client::new();
 
     let response = client
-        .get(format!("http://{}/nonexistent_key", server_handle.addr))
+        .get(format!("http://{}/redirect/nonexistent_key", server_handle.addr))
         .send()
         .await?;
 
