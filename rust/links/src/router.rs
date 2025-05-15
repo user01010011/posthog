@@ -63,6 +63,11 @@ where
         .route("/redirect/:short_code", get(internal_redirect_url))
         .route("/redirect/:short_code/", get(internal_redirect_url));
 
+    let links_internal_router = Router::new()
+        .route("/:short_code", get(internal_redirect_url))
+        .route("/:short_code/", get(internal_redirect_url));
+>>>>>>> master
+
     let router = Router::new()
         .merge(status_router)
         .merge(links_external_router)
